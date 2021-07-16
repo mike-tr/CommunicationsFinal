@@ -16,6 +16,6 @@ int main()
     pr.msg_id = 1;
     cout << pr.msg_id << endl;
     cout << c << endl;
-    cout << "test" << endl;
+    cout << "tessdsdst" << endl;
     return 0;
 }

@@ -11,9 +11,11 @@ EXE_PATH := out/
 SRC_PATH := src/
 OBJ_PATH := obj/
 HPP_PATH := src/hpp/
+INTERFACE_PATH := src/interfaces/
 
 # get all the .hpp files that are inside the HPP folder.
 HEADERS := $(wildcard $(HPP_PATH)*.hpp)
+INTERFACES := $(wildcard $(INTERFACE_PATH)*.hpp)
 
 # get all the .cpp files that are inside the SRC_PATH folder.
 SOURCES := $(wildcard $(SRC_PATH)*.cpp)
@@ -31,7 +33,7 @@ SOURCES := $(wildcard $(SRC_PATH)*.cpp)
 # now we can use OBJECTS to compile all the needed files.
 OBJECTS := $(patsubst $(SRC_PATH)%.cpp, $(OBJ_PATH)%.o, $(SOURCES)) 
 
-MAIN := main
+MAIN := sdsds
 
 #compile and run the exe
 run: $(EXE_PATH)$(PROG_NAME)
@@ -46,7 +48,7 @@ all: $(OBJECTS)
 # Compline everything, and create an executable file
 # Note there is no need to specify where is the main function.
 # Note will crash if there is multiple main functions!
-$(OBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS)
+$(OBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(INTERFACES)
 	$(CXX) $(CXXFLAGS) --compile $< -o $@
 
 $(EXE_PATH)$(PROG_NAME) : $(OBJ_PATH)$(MAIN).o $(OBJECTS)
@@ -55,11 +57,10 @@ $(EXE_PATH)$(PROG_NAME) : $(OBJ_PATH)$(MAIN).o $(OBJECTS)
 $(OBJ_PATH)$(MAIN).o: $(MAIN).cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) --compile $< -o $@
 
-
 $(EXE_PATH)example: $(OBJ_PATH)example.o $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ -o  $@
 
-$(OBJ_PATH)example.o: example.cpp $(HEADERS)
+$(OBJ_PATH)example.o: example.cpp $(HEADERS) $(INTERFACES)
 	$(CXX) $(CXXFLAGS) --compile $< -o $@
 
 tidy:
@@ -70,14 +71,3 @@ valgrind: test
 
 clean:
 	rm -f $(OBJ_PATH)*.o $(OBJECTS) $(EXE_PATH)$(PROG_NAME) *.o main
-
-# #OLD
-# run: example
-# 	./example
-
-# %.o: %.cpp $(HEADERS)
-# 	$(CXX) $(CXXFLAGS) --compile $< -o $@
-
-# clean :
-# 	rm -f *.o sender measure
-

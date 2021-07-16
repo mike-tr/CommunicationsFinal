@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-#include "src/hpp/select.hpp"
+#include "src/headers/select.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     //time_t ticks;
 
     listenfd = socket(AF_INET, SOCK_DGRAM, 0);
-    listenfd2 = socket(AF_INET, SOCK_STREAM, 0);
+    listenfd2 = socket(AF_INET, SOCK_DGRAM, 0);
     memset(&serv_addr, '0', sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET;
