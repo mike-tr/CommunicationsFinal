@@ -85,6 +85,7 @@ int main(int argc, char *argv[])
     }
     socklen_t addr_size = sizeof(new_addr);
     std::thread t1(clients, sockfd, new_addr, addr_size, buff);  
+    return 0;
     // Forcefully attaching socket to the port 8080
 
     // printf("adding fd1(%d) to monitoring\n", sockfd);
