@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
       printf("Input is: %s", buff);
     }
     socklen_t addr_size = sizeof(new_addr);
-    std::thread t1(clients, sockfd, new_addr, addr_size, buff);  
+    std::thread t1(clients, sockfd, &new_addr, addr_size, buff);  
     return 0;
     // Forcefully attaching socket to the port 8080
 

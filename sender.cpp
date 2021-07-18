@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 #include <netinet/tcp.h>
 
-#define SERVER_PORT 9090
+#define SERVER_PORT 5010
 #define SERVER_IP_ADDRESS "127.0.0.1"
 #define BUFF_SIZE 1024
 #define END_OF_FILE "@@EOF@@"
