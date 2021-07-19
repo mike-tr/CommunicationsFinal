@@ -11,24 +11,17 @@
 #include <thread>
 #include <iostream>
 #include <stdio.h>
+#include <pthread.h>
+
 
 #include "src/headers/select.hpp"
-#include "src/select.cpp"
+#include "src/select.cpp" 
 
 void clients(int sockfd, sockaddr_in *new_addr, socklen_t addr_size, char* buff){
   while(true)
       {
         int client = accept(sockfd, (struct sockaddr*)new_addr, &addr_size);
         add_fd_to_monitoring(client);
-        if(listen(client, 10) == 0)
-        {
-          printf(" Listening right now... \n");
-        }
-        else
-        {
-          perror(" There's an ERROR in listening ");
-          exit(1);
-        }
         char ip[16] = {0};
         inet_ntop(AF_INET, &new_addr->sin_addr.s_addr, ip, 15);
         uint16_t port = ntohs(new_addr->sin_port);
@@ -44,7 +37,7 @@ int main(int argc, char *argv[])
     struct sockaddr_in serv_addr, new_addr;
     //int ret;
     // int opt = 1;
-    int port = 5010;
+    int port = 5019;
     char buff[1025];
     //time_t ticks;
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
@@ -53,7 +46,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = port;
+    serv_addr.sin_port = htons(port);
     serv_addr.sin_addr.s_addr = INADDR_ANY;
 
     if(bind(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0){
@@ -80,11 +73,13 @@ int main(int argc, char *argv[])
       int client_sock = wait_for_input();
       printf("fd: %d is ready. reading...\n", client_sock);
       memset(buff, 1025, sizeof(char)); 
-      ssize_t message = read(client_sock,buff,sizeof(buff));
-      printf("Input is: %s", buff);
+      int message = read(client_sock,buff,sizeof(buff));
+      printf("Input is: %s/n", buff);
+      break;
     }
     socklen_t addr_size = sizeof(new_addr);
     std::thread t1(clients, sockfd, &new_addr, addr_size, buff);  
+    t1.join();
     return 0;
     // Forcefully attaching socket to the port 8080
 
