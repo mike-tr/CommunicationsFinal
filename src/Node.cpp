@@ -45,7 +45,7 @@ void Node::start_server()
     //add_fd_to_monitoring(this->server);
     this->running = true;
     this->w84connections = thread{&Node::connections_thread, this};
-    this->user_input();
+    this->handle_input();
 }
 
 void Node::connections_thread()
@@ -82,7 +82,7 @@ void Node::connections_thread()
     }
 }
 
-void Node::user_input()
+void Node::handle_input()
 {
     cout << "listening to all..." << endl;
     // char buff[buff_size];

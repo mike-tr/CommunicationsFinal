@@ -13,6 +13,7 @@
 class Node : public INodeNet, public INodeUser
 {
 private:
+    // SERVER SIDE
     struct sockaddr_in serv_addr;
     fd_listener listner;
     int server;
@@ -20,9 +21,10 @@ private:
     std::thread w84connections;
     std::map<int, int> connections;
     void connections_thread();
-    void user_input();
+    void handle_input();
 
     bool running = false;
+    // CLIENT SIDE ( SHOULD BE PRIVATE )
 
 public:
     Node(std::string ip, int port, int max_connections, bool listen_to_input);
