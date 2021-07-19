@@ -44,7 +44,7 @@ run: $(EXE_PATH)$(PROG_NAME)
 run2: $(EXE_PATH)$(PROG_NAME2)
 	./$^
 
-run_example:  $(EXE_PATH)example
+run_sender:  $(EXE_PATH)sender
 	./$^
 
 #Compile all the .o files.
@@ -68,10 +68,10 @@ $(EXE_PATH)$(PROG_NAME2) : $(OBJ_PATH)$(MAIN2).o $(OBJECTS)
 $(OBJ_PATH)$(MAIN2).o: $(MAIN2).cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) --compile $< -o $@
 
-$(EXE_PATH)example: $(OBJ_PATH)example.o $(OBJECTS)
+$(EXE_PATH)sender: $(OBJ_PATH)sender.o $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ -o  $@
 
-$(OBJ_PATH)example.o: example.cpp $(HEADERS) $(INTERFACES)
+$(OBJ_PATH)sender.o: sender.cpp $(HEADERS) $(INTERFACES)
 	$(CXX) $(CXXFLAGS) --compile $< -o $@
 
 tidy:
