@@ -49,14 +49,6 @@ void fd_listener::remove_descriptor(const uint fd)
 
 int fd_listener::wait_for_input()
 {
-    // maybe we got more then one message at the same time!
-    // for (uint fd : this->descriptors)
-    // {
-    //     if (FD_ISSET(fd, &rfds))
-    //         return fd;
-    // }
-
-    // No messages to read, so we w8 for messages.
     memcpy(&rfds, &rfds_copy, sizeof(rfds_copy));
     int retval = select(this->max_discriptor + 1, &rfds, NULL, NULL, NULL);
     if (retval > 0)
