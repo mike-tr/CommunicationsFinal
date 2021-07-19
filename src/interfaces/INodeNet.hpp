@@ -4,7 +4,7 @@
 class INodeNet
 {
 public:
-    virtual void ack(ProtoCF &incoming_message);
-    virtual void nack(ProtoCF &incoming_message);
-    virtual void discover(ProtoCF &incoming_message);
+    virtual void ack(ProtoCF &incoming_message) = 0;
+    virtual void nack(ProtoCF &incoming_message) = 0;
+    virtual void discover(ProtoCF &incoming_message) = 0;
 };

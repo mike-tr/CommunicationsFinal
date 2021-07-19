@@ -53,6 +53,8 @@ int wait_for_input()
   int i, retval;
   memcpy(&rfds, &rfds_copy, sizeof(rfds_copy));
   retval = select(max_fd + 1, &rfds, NULL, NULL, NULL);
+
+  printf("got at %d", retval);
   if (retval > 0)
   {
     for (i = 0; i < alloced_fds_num; ++i)
