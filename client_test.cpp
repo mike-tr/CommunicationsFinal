@@ -5,22 +5,22 @@
 
 #include "src/headers/ProtoCF.hpp"
 #include "src/headers/Node.hpp"
-#include "src/headers/ClientNode.hpp"
+//#include "src/headers/ClientNode.hpp"
 #include <set>
 using namespace std;
 
 int main()
 {
-    fd_listener listener{true};
-
-    ClientNode node{listener};
+    Node node{"127.0.0.1", 5001, 10, true};
     int fd = node.connect_to("127.0.0.1", 5000);
 
-    for (int i = 0; i < 10; i++)
+    printf("sending messages...\n");
+    for (int i = 1; i <= 10; i++)
     {
+        printf("send message %d...\n", i);
         string message = "test : " + std::to_string(i) + "\n";
         sleep(1);
-        node.send_msg(fd, message);
+        node.send_message(fd, message);
     }
     return 0;
 }

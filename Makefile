@@ -35,7 +35,7 @@ SOURCES := $(wildcard $(SRC_PATH)*.cpp)
 OBJECTS := $(patsubst $(SRC_PATH)%.cpp, $(OBJ_PATH)%.o, $(SOURCES)) 
 
 MAIN := main
-MAIN2 := sender
+MAIN2 := client_test
 
 #compile and run the exe
 run: $(EXE_PATH)$(PROG_NAME)
