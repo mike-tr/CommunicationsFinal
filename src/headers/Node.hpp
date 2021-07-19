@@ -16,17 +16,13 @@ private:
     struct sockaddr_in serv_addr;
     fd_listener listner;
     int server;
-    int interrupt_sock[2];
     int max_connections;
     std::thread w84connections;
     std::map<int, int> connections;
     void connections_thread();
     void user_input();
-    void listen_to(int sock);
-    void interrupt();
 
     bool running = false;
-    bool failed = false;
 
 public:
     Node(std::string ip, int port, int max_connections, bool listen_to_input);

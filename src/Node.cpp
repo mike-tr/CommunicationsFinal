@@ -22,7 +22,6 @@ Node::Node(std::string ip, int port, int max_connections, bool listen_to_input)
     if (p <= 0)
     {
         printf("inet_pton has failed...\n");
-        failed = true;
         exit(1);
     }
 
@@ -35,16 +34,13 @@ Node::Node(std::string ip, int port, int max_connections, bool listen_to_input)
 
 Node::~Node()
 {
+    running = false;
     close(this->server);
+    w84connections.join();
 }
 
 void Node::start_server()
 {
-    socketpair(AF_UNIX, SOCK_STREAM, 0, this->interrupt_sock);
-
-    cout << "my file is : " << interrupt_sock[0] << endl;
-    //add_fd_to_monitoring(this->interrupt_sock[0]);
-    listner.add_descriptor(this->interrupt_sock[0]);
     cout << "Starting Node..." << endl;
     //add_fd_to_monitoring(this->server);
     this->running = true;
@@ -61,7 +57,6 @@ void Node::connections_thread()
         exit(1);
     }
 
-    char buff[buff_size];
     sockaddr_in incomming_connection;
     socklen_t addr_size = sizeof(incomming_connection);
 
@@ -82,32 +77,9 @@ void Node::connections_thread()
         printf("connected succsesfully to %s:%d \n", ip, port);
 
         // We send a message to the socket inorder to update and get new data.
-        string message = "intrupt by new connection\n";
         listner.add_descriptor(client);
-        send(this->interrupt_sock[1], &message[0], message.length(), 0);
-        //send(this->interrupt_sock[0], &message[0], message.length(), 0);
+        listner.interupt();
     }
-}
-
-void Node::interrupt()
-{
-}
-
-void Node::listen_to(int sock)
-{
-    cout << "listening to sock " << sock << endl;
-    // char buff[buff_size];
-    int message;
-    while (this->running)
-    {
-        // int ret = wait_for_input();
-        // printf("fd: %d is ready. reading...\n", ret);
-        // memset(buff, 0, buff_size);
-        // message = read(sock, 0, buff_size);
-        // printf("Client[%d]: %s\n", sock, buff);
-    }
-
-    cout << "sock : " << sock << " is down..." << endl;
 }
 
 void Node::user_input()
@@ -138,16 +110,5 @@ void Node::user_input()
             cout << "message size is : " << size << endl;
             printf("%s", buff);
         }
-
-        // int k;
-        // cin >> k;
     }
-
-    // cout << "sock : " << sock << " is down..." << endl;
-    // char input[buff_size];
-    // while (this->running)
-    // {
-    //     fgets(input, buff_size, stdin);
-    //     cout << input;
-    // }
 }

@@ -28,15 +28,10 @@ int send_file(const int server, FILE *fp);
 int main(int argc, char **argv)
 {
     int server = -1;
-    FILE *fp;
-
-    fp = fopen(FILE_NAME, "rb");
 
     sockaddr_in serverAddr;
 
     server = init_server(&serverAddr);
-
-    char buff[BUFF_SIZE] = {'\0'};
 
     //char *message = "hello from client!";
 
