@@ -8,8 +8,10 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/tcp.h>
+#include <string>
 
 #define SERVER_PORT 5019
+#define SERVER_PORT 5000
 #define SERVER_IP_ADDRESS "127.0.0.1"
 #define BUFF_SIZE 1024
 #define END_OF_FILE "@@EOF@@"
@@ -31,6 +33,17 @@ int main(int argc, char **argv)
     sockaddr_in serverAddr;
 
     server = init_server(&serverAddr);
+
+    //char *message = "hello from client!";
+
+    for (int i = 0; i < 10; i++)
+    {
+        sleep(1);
+        std::string message = "testing : " + std::to_string(i) + "\n";
+        send(server, &message[0], message.length(), 0);
+    }
+
+    //bytes_recived = recv(server, buff, BUFF_SIZE, 0);
 
     printf("Closing client\n");
     close(server);
@@ -78,3 +91,4 @@ int init_server(sockaddr_in *serverAddr)
     send(server, data, sizeof(data), 0);
     return server;
 }
+

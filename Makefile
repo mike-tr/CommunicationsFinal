@@ -1,9 +1,10 @@
 CXX=g++
-CXXFLAGS=-g -Wall
+CXXFLAGS=-g -Wall -pthread
 VALGRIND_FLAGS=-v --leak-check=full --show-leak-kinds=all  --error-exitcode=99
 
 # name of the executable file
 PROG_NAME := pragma.exe
+PROG_NAME2 := pragma2.exe
 
 # set the path of the executable file
 EXE_PATH := out/
@@ -33,13 +34,17 @@ SOURCES := $(wildcard $(SRC_PATH)*.cpp)
 # now we can use OBJECTS to compile all the needed files.
 OBJECTS := $(patsubst $(SRC_PATH)%.cpp, $(OBJ_PATH)%.o, $(SOURCES)) 
 
-MAIN := sdsds
+MAIN := main
+MAIN2 := client_test
 
 #compile and run the exe
 run: $(EXE_PATH)$(PROG_NAME)
 	./$^
 
-run_example:  $(EXE_PATH)example
+run2: $(EXE_PATH)$(PROG_NAME2)
+	./$^
+
+run_sender:  $(EXE_PATH)sender
 	./$^
 
 #Compile all the .o files.
@@ -57,10 +62,16 @@ $(EXE_PATH)$(PROG_NAME) : $(OBJ_PATH)$(MAIN).o $(OBJECTS)
 $(OBJ_PATH)$(MAIN).o: $(MAIN).cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) --compile $< -o $@
 
-$(EXE_PATH)example: $(OBJ_PATH)example.o $(OBJECTS)
+$(EXE_PATH)$(PROG_NAME2) : $(OBJ_PATH)$(MAIN2).o $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $^ -o $(EXE_PATH)$(PROG_NAME2)
+
+$(OBJ_PATH)$(MAIN2).o: $(MAIN2).cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) --compile $< -o $@
+
+$(EXE_PATH)sender: $(OBJ_PATH)sender.o $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ -o  $@
 
-$(OBJ_PATH)example.o: example.cpp $(HEADERS) $(INTERFACES)
+$(OBJ_PATH)sender.o: sender.cpp $(HEADERS) $(INTERFACES)
 	$(CXX) $(CXXFLAGS) --compile $< -o $@
 
 tidy:
