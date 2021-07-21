@@ -16,6 +16,14 @@ Node::Node(std::string ip, int port, int max_connections, bool listen_to_input)
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
+
+    // int free_sock = 1;
+    // if (setsockopt(this->server, SOL_SOCKET, SO_REUSEADDR, &free_sock, sizeof free_sock) == -1)
+    // {
+    //     perror("failed to free socket\n");
+    //     exit(1);
+    // }
+
     this->serv_addr.sin_family = AF_INET;
     this->serv_addr.sin_port = htons(port);
     int p = inet_pton(AF_INET, &ip[0], &serv_addr.sin_addr);
@@ -36,7 +44,9 @@ Node::~Node()
 {
     running = false;
     close(this->server);
-    w84connections.join();
+    //w84connections.join();
+
+    cout << "quit" << endl;
 }
 
 void Node::start_server()
