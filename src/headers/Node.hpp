@@ -36,12 +36,9 @@ public:
     // set the id of the node.
     virtual void setid(int id) {}
     // connect to node given ip and port.
-    virtual int connect_to(std::string ip, int port)
-    {
-        return 0;
-    }
+    virtual int connect_to(std::string ip, int port);
     // send message of length len, to node(id).
-    virtual void send_message(int id, std::string message) {}
+    virtual void send_message(int id, std::string message);
     // print the rout to a given node ( exp 1->5->3->2 ).
     virtual void route(int id) {}
     // print the list of all connected nodes.

@@ -10,16 +10,17 @@
 #include <netinet/tcp.h>
 #include <string>
 
+#define SERVER_PORT 5019
 #define SERVER_PORT 5000
 #define SERVER_IP_ADDRESS "127.0.0.1"
 #define BUFF_SIZE 1024
 #define END_OF_FILE "@@EOF@@"
 #define START_FILE "@@START@@"
 
-#define FILE_NAME "data.txt"
 
 typedef struct sockaddr_in sockaddr_in;
 typedef struct sockaddr sockaddr;
+
 
 int init_server(sockaddr_in *serverAddr);
 int send_long(const int server, long to_send);
@@ -86,6 +87,8 @@ int init_server(sockaddr_in *serverAddr)
     }
 
     printf("Connected to server\n");
-
+    char* data = "hello";
+    send(server, data, sizeof(data), 0);
     return server;
 }
+
