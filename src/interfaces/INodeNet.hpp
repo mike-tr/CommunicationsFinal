@@ -1,10 +1,11 @@
 #pragma once
-#include "../headers/ProtoCF.hpp"
+#include "../headers/NodeMessage.hpp"
 
 class INodeNet
 {
 public:
-    virtual void ack(ProtoCF &incoming_message) = 0;
-    virtual void nack(ProtoCF &incoming_message) = 0;
-    virtual void discover(ProtoCF &incoming_message) = 0;
+    virtual void ack(NodeMessage &incoming_message) = 0;
+    virtual void nack(NodeMessage &incoming_message) = 0;
+    virtual void discover(NodeMessage &incoming_message) = 0;
+    virtual void send_netm(NodeMessage &message) = 0;
 };

@@ -13,8 +13,11 @@ const string interupt_msg = "#I#";
 const uint buff_size = 1024;
 char buff[buff_size];
 
-fd_listener::fd_listener(bool enable_user_input)
+fd_listener::fd_listener(bool enable_user_input) : max_discriptor(0)
 {
+    // char s[] = "tempXXXXXX";
+    // int fd = mkstemp(s);
+    // cout << fd << endl;
     socketpair(AF_UNIX, SOCK_STREAM, 0, this->interrupt_sock);
     FD_ZERO(&rfds_copy);
     this->descriptors.clear();

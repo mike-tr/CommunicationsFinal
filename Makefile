@@ -39,10 +39,10 @@ MAIN2 := client_test
 
 #compile and run the exe
 run: $(EXE_PATH)$(PROG_NAME)
-	./$^
+	./$^ $(ip) $(port)
 
 run2: $(EXE_PATH)$(PROG_NAME2)
-	./$^
+	./$^ $(ip) $(port)
 
 run_sender:  $(EXE_PATH)sender
 	./$^

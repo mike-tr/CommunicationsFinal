@@ -4,24 +4,40 @@
 #include <unistd.h>
 #include <iostream>
 
-#include "src/headers/ProtoCF.hpp"
+#include "src/headers/NodeMessage.hpp"
 #include "src/headers/Node.hpp"
+#include "src/headers/Utilities.hpp"
 // #include "src/NodeInherited.cpp"
 //#include "src/headers/ClientNode.hpp"
 #include <set>
 using namespace std;
+using namespace Utilities;
 
-int main()
+int main(int argc, char *argv[])
 {
-    string ip;
-    int port;
-    printf("Enter Ip Address: ");
-    cin >> ip;
-    printf("Enter Port: ");
-    cin >> port;
-    Node node{ip, port, 10, true};
-    int fd = node.connect_to(ip, 5000);
-    ProtoCF protocol;
+    // cout << argc << endl;
+    // for (int i = 0; i < argc; i++)
+    // {
+    //     cout << argv[i] << endl;
+    // }
+    // string ip;
+    // int port;
+    // printf("Enter Ip Address: ");
+    // cin >> ip;
+    // printf("Enter Port: ");
+    // cin >> port;
+
+    string ss = "d123,2222s,asdas";
+    for (auto s : Utilities::splitBy(ss, ','))
+    {
+        cout << s << endl;
+    }
+
+    auto ipport = Address::GetIPandPort(argc, argv);
+    Node node{ipport, 10, true};
+    auto address = Address{"127.0.0.1", 5000};
+    int fd = node.connect_to(address);
+    NodeMessage protocol;
     printf("sending messages...\n");
     for (int i = 1; i <= 10; i++)
     {
@@ -30,8 +46,9 @@ int main()
         protocol.payload = &message[0];
         string proto = protocol.to_string(protocol);
         sleep(1);
-        node.send_message(fd, proto);
-        if(i==9){
+        //node.send_message(fd, proto);
+        if (i == 9)
+        {
             printf("\n Closing client");
             close(fd);
         }

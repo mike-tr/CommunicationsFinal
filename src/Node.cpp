@@ -2,14 +2,16 @@
 #include <unistd.h>
 #include <iostream>
 #include <unistd.h>
+//#include "headers/Utilities.hpp"
 
 using namespace std;
 
 const int buff_size = 512;
 
-Node::Node(std::string ip, int port, int max_connections, bool listen_to_input)
-    : INodeNet(), INodeUser(), listner(listen_to_input)
+Node::Node(Utilities::Address &address, int max_connections, bool listen_to_input)
+    : INodeNet(), INodeUser(), my_address(address), listner(listen_to_input)
 {
+    struct sockaddr_in serv_addr;
     this->max_connections = max_connections;
     if ((this->server = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
@@ -24,9 +26,9 @@ Node::Node(std::string ip, int port, int max_connections, bool listen_to_input)
     //     exit(1);
     // }
 
-    this->serv_addr.sin_family = AF_INET;
-    this->serv_addr.sin_port = htons(port);
-    int p = inet_pton(AF_INET, &ip[0], &serv_addr.sin_addr);
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(address.port);
+    int p = inet_pton(AF_INET, &address.ip[0], &serv_addr.sin_addr);
     if (p <= 0)
     {
         printf("inet_pton has failed...\n");
@@ -86,6 +88,10 @@ void Node::connections_thread()
         uint16_t port = ntohs(incomming_connection.sin_port);
         printf("connected succsesfully to %s:%d \n", ip, port);
 
+        Utilities::Address add{ip, port};
+        this->connections.insert({client, add});
+        // this->connections[client] = add;
+
         // We send a message to the socket inorder to update and get new data.
         listner.add_descriptor(client);
         listner.interupt();
@@ -102,22 +108,63 @@ void Node::handle_input()
     {
 
         printf("waiting for input...\n");
-        int ret = listner.wait_for_input();
-        printf("fd: %d is ready. reading...\n", ret);
+        int socket = listner.wait_for_input();
+        printf("fd: %d is ready. reading...\n", socket);
         // this simply reads the bytes send from the right socket, and droppes the message into bugg
         // Notice : that you want to remove any garbage from buff.
         // so i ADD here buff = 0
         memset(buff, 0, buff_size);
         //fgets(buff, buff_size, stdin);
-        size = read(ret, buff, buff_size);
+        size = read(socket, buff, buff_size);
+        if (socket == -1)
+        {
+            cout << "Error in input... " << strerror(errno) << endl;
+            continue;
+        }
+
+        cout << " ? " << endl;
         if (size == 0)
         {
             cout << "disconnected..." << endl;
-            this->listner.remove_descriptor(ret);
+            this->listner.remove_descriptor(socket);
+            this->connections.erase(socket);
+
+            int v = this->socketToId[socket];
+            if (v != 0)
+            {
+                this->socketToId.erase(socket);
+                this->idToSocket.erase(v);
+            }
+        }
+        else if (socket == 0)
+        {
+            // USER INPUT
+            auto split = Utilities::splitBy(buff, ',');
+            cout << split[0] << endl;
+            if (id == -1)
+            {
+                if (split[0] != "setid")
+                {
+                    cout << "setid first!" << endl;
+                    cout << "nack" << endl;
+                }
+                else
+                {
+                    this->setid(split[1]);
+                }
+            }
+            else if (split[0] == "peers")
+            {
+                cout << "printing ips..." << endl;
+                for (auto a : this->connections)
+                {
+                    cout << a.second.ip << " " << a.second.port << endl;
+                }
+            }
         }
         else
         {
-            cout << "message size is : " << size << endl;
+            cout << "message from server size is : " << size << endl;
             printf("%s", buff);
         }
     }
