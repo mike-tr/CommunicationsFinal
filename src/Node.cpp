@@ -164,8 +164,19 @@ void Node::handle_input()
         }
         else
         {
-            cout << "message from server size is : " << size << endl;
-            printf("%s", buff);
+            // cout << "message from server size is : " << size << endl;
+            // cout << buff << endl;
+            try
+            {
+                NodeMessage *ms = (NodeMessage *)buff;
+                cout << "message from server size is : " << size << endl;
+                cout << ms->to_string() << endl;
+            }
+            catch (exception exp)
+            {
+                cout << "Got wrong message format of size : " << size << endl;
+            }
+            //printf("%s", buff);
         }
     }
 }

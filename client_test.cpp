@@ -43,10 +43,10 @@ int main(int argc, char *argv[])
     {
         printf("send message %d...\n", i);
         string message = "test : " + std::to_string(i) + "\n";
-        protocol.payload = &message[0];
-        string proto = protocol.to_string(protocol);
+        //protocol.payload = &message[0];
+        //string proto = protocol.to_string(protocol);
         sleep(1);
-        //node.send_message(fd, proto);
+        node.send_message(fd, message);
         if (i == 9)
         {
             printf("\n Closing client");

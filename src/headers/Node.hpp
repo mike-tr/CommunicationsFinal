@@ -52,5 +52,5 @@ public:
     virtual void ack(NodeMessage &incoming_message) {}
     virtual void nack(NodeMessage &incoming_message) {}
     virtual void discover(NodeMessage &incoming_message) {}
-    virtual void send_netm(NodeMessage &message);
+    virtual void send_netm(int sock, NodeMessage &message);
 };

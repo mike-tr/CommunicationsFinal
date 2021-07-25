@@ -40,14 +40,22 @@ int Node::connect_to(Utilities::Address &address)
 
 void Node::send_message(int other_id, std::string message)
 {
-    // NodeMessage nm;
-    // nm.source_id = this->id;
-    // nm.destination_id = other_id;
-    send(other_id, &message[0], message.length(), 0);
+    NodeMessage nm;
+    nm.source_id = this->id;
+    nm.destination_id = other_id;
+    nm.setPayload(message);
+
+    // THIS SHOULD BE THE COMMENTED LINE FROM BELOW!
+    int other_sock = other_id;
+    //int other_sock = idToSocket[other_id];
+    this->send_netm(other_sock, nm);
 }
 
-void Node::send_netm(NodeMessage &message)
+void Node::send_netm(int sock, NodeMessage &message)
 {
+    //cout << message.to_string() << endl;
+    //cout << sizeof(message) << endl;
+    send(sock, &message, sizeof(message), 0);
 }
 
 void Node::setid(std::string id)
