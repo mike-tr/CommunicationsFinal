@@ -17,10 +17,8 @@
 #define END_OF_FILE "@@EOF@@"
 #define START_FILE "@@START@@"
 
-
 typedef struct sockaddr_in sockaddr_in;
 typedef struct sockaddr sockaddr;
-
 
 int init_server(sockaddr_in *serverAddr);
 int send_long(const int server, long to_send);
@@ -87,8 +85,7 @@ int init_server(sockaddr_in *serverAddr)
     }
 
     printf("Connected to server\n");
-    char* data = "hello";
+    char *data = "hello";
     send(server, data, sizeof(data), 0);
     return server;
 }
-
