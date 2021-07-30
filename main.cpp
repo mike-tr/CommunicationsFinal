@@ -4,33 +4,17 @@
 
 #include "src/headers/NodeMessage.hpp"
 #include "src/headers/Node.hpp"
+#include "src/headers/Utilities.hpp"
 #include <set>
 using namespace std;
 
-int main()
+using namespace Utilities;
+
+int main(int argc, char *argv[])
 {
-    auto address = Utilities::Address{"127.0.0.1", 5000};
-    Node node{address, 10, true};
+    auto ipport = Address::GetIPandPort(argc, argv);
+    //auto address = Address{"127.0.0.1", 5000};
+    Node node{ipport, 10, false};
     node.start_server();
-
-    // set<int> s{1, 2, 3, 4};
-    // cout << *s.begin() << endl;
-
-    // auto pr = NodeMessage{};
-    // char *c1 = "12345\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
-    // string baka{c1};
-    // char *c = &baka[0];
-
-    // cout << baka.size() << endl;
-
-    // cout << pr.msg_id << endl;
-    // pr.msg_id = 1;
-    // cout << pr.msg_id << endl;
-    // cout << c << endl;
-    // cout << "test" << endl;
-
-    // char input[512];
-    // fgets(input, 512, stdin);
-    // cout << input << endl;
     return 0;
 }

@@ -1,0 +1,8 @@
+127.0.0.1
+5050
+setid,2
+connect,127.0.0.1:5000
+123123
+basedas
+sdasdas
+fdfdasf

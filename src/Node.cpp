@@ -103,11 +103,11 @@ void Node::handle_input()
     cout << "listening to all..." << endl;
     // char buff[buff_size];
     char buff[buff_size];
-    int size;
+    usert = thread{&Node::userThread, this};
     while (this->running)
     {
+        printf("\nwaiting for input...\n");
 
-        printf("waiting for input...\n");
         int socket = listner.wait_for_input();
         printf("fd: %d is ready. reading...\n", socket);
         // this simply reads the bytes send from the right socket, and droppes the message into bugg
@@ -115,68 +115,19 @@ void Node::handle_input()
         // so i ADD here buff = 0
         memset(buff, 0, buff_size);
         //fgets(buff, buff_size, stdin);
-        size = read(socket, buff, buff_size);
         if (socket == -1)
         {
             cout << "Error in input... " << strerror(errno) << endl;
-            continue;
-        }
-
-        cout << " ? " << endl;
-        if (size == 0)
-        {
-            cout << "disconnected..." << endl;
-            this->listner.remove_descriptor(socket);
-            this->connections.erase(socket);
-
-            int v = this->socketToId[socket];
-            if (v != 0)
-            {
-                this->socketToId.erase(socket);
-                this->idToSocket.erase(v);
-            }
         }
         else if (socket == 0)
         {
-            // USER INPUT
-            auto split = Utilities::splitBy(buff, ',');
-            cout << split[0] << endl;
-            if (id == -1)
-            {
-                if (split[0] != "setid")
-                {
-                    cout << "setid first!" << endl;
-                    cout << "nack" << endl;
-                }
-                else
-                {
-                    this->setid(split[1]);
-                }
-            }
-            else if (split[0] == "peers")
-            {
-                cout << "printing ips..." << endl;
-                for (auto a : this->connections)
-                {
-                    cout << a.second.ip << " " << a.second.port << endl;
-                }
-            }
+            // READ FROM USER
+            this->handleUserInput();
         }
         else
         {
-            // cout << "message from server size is : " << size << endl;
-            // cout << buff << endl;
-            try
-            {
-                NodeMessage *ms = (NodeMessage *)buff;
-                cout << "message from server size is : " << size << endl;
-                cout << ms->to_string() << endl;
-            }
-            catch (exception exp)
-            {
-                cout << "Got wrong message format of size : " << size << endl;
-            }
-            //printf("%s", buff);
+            // TCP message, recived
+            this->handleNodeInput(socket);
         }
     }
 }

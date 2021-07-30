@@ -27,14 +27,8 @@ int main(int argc, char *argv[])
     // printf("Enter Port: ");
     // cin >> port;
 
-    string ss = "d123,2222s,asdas";
-    for (auto s : Utilities::splitBy(ss, ','))
-    {
-        cout << s << endl;
-    }
-
     auto ipport = Address::GetIPandPort(argc, argv);
-    Node node{ipport, 10, true};
+    Node node{ipport, 10, false};
     auto address = Address{"127.0.0.1", 5000};
     int fd = node.connect_to(address);
     NodeMessage protocol;

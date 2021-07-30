@@ -17,4 +17,15 @@ public:
     virtual void route(int id) = 0;
     // print the list of all connected nodes.
     virtual void peers() = 0;
+
+    bool formatCheck(std::vector<std::string> vec, uint size)
+    {
+        if (vec.size() != size)
+        {
+            std::cout << "Invalid argument's : ";
+            std::cout << "Nack" << std::endl;
+            return false;
+        }
+        return true;
+    }
 };

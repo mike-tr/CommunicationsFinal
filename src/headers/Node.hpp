@@ -13,14 +13,16 @@
 class Node : public INodeNet, public INodeUser
 {
 private:
-    const int NONE = -1;
+    static const int NONE = -1;
+    static const uint buff_size = sizeof(NodeMessage);
     // SERVER SIDE
     Utilities::Address &my_address;
-    int id = NONE;
+    int node_id = NONE;
     fd_listener listner;
     int server;
     int max_connections;
     std::thread w84connections;
+    std::thread usert;
     std::map<int, Utilities::Address> connections;
     std::map<int, int> idToSocket;
     std::map<int, int> socketToId;
@@ -28,7 +30,12 @@ private:
     void handle_input();
 
     bool running = false;
+    char buff[buff_size];
+    uint msg_size = 0;
     // CLIENT SIDE ( SHOULD BE PRIVATE )
+    void handleNodeInput(int socket);
+    bool handleUserInput();
+    void userThread();
 
 public:
     Node(Utilities::Address &address, int max_connections, bool listen_to_input);
@@ -53,4 +60,5 @@ public:
     virtual void nack(NodeMessage &incoming_message) {}
     virtual void discover(NodeMessage &incoming_message) {}
     virtual void send_netm(int sock, NodeMessage &message);
+    virtual void connect_tcp(std::string ipport);
 };

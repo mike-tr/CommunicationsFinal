@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <algorithm>
 
 namespace Utilities
 {
@@ -25,6 +26,8 @@ namespace Utilities
 
         static Address GetIPandPort(int argc, char *argv[])
         {
+            char buff[512] = {0};
+
             std::string ip;
             int port;
             if (argc == 3)
@@ -33,10 +36,17 @@ namespace Utilities
                 ip = argv[1];
                 return {ip, port};
             }
+
             std::cout << "Enter Ip Address:" << std::endl;
-            std::cin >> ip;
+            fgets(buff, 512, stdin);
+            ip = std::string{buff};
+            ip.erase(std::remove(ip.begin(), ip.end(), '\n'),
+                     ip.end());
             std::cout << "Enter Port: " << std::endl;
-            std::cin >> port;
+            fgets(buff, 512, stdin);
+            std::string response{buff};
+            port = atoi(response.c_str());
+            //std::cin >> port;
             return {ip, port};
         }
 

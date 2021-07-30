@@ -41,7 +41,7 @@ int Node::connect_to(Utilities::Address &address)
 void Node::send_message(int other_id, std::string message)
 {
     NodeMessage nm;
-    nm.source_id = this->id;
+    nm.source_id = this->node_id;
     nm.destination_id = other_id;
     nm.setPayload(message);
 
@@ -60,6 +60,13 @@ void Node::send_netm(int sock, NodeMessage &message)
 
 void Node::setid(std::string id)
 {
-    this->id = std::atoi(&id[0]);
-    //cout << "new id : " << this->id << endl;
+    this->node_id = std::atoi(&id[0]);
+    cout << "new id : " << this->node_id << endl;
+}
+
+void Node::connect_tcp(std::string ipport)
+{
+    auto split = Utilities::splitBy(ipport, ':');
+    cout << "handling connection to " << split[0] << endl;
+    cout << "on port " << split[1] << endl;
 }

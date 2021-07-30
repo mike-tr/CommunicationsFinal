@@ -11,7 +11,7 @@ EXE_PATH := out/
 
 SRC_PATH := src/
 OBJ_PATH := obj/
-HPP_PATH := src/hpp/
+HPP_PATH := src/headers/
 INTERFACE_PATH := src/interfaces/
 
 # get all the .hpp files that are inside the HPP folder.
@@ -36,6 +36,8 @@ OBJECTS := $(patsubst $(SRC_PATH)%.cpp, $(OBJ_PATH)%.o, $(SOURCES))
 
 MAIN := main
 MAIN2 := client_test
+READER := reader
+
 
 #compile and run the exe
 run: $(EXE_PATH)$(PROG_NAME)
@@ -47,8 +49,14 @@ run2: $(EXE_PATH)$(PROG_NAME2)
 run_sender:  $(EXE_PATH)sender
 	./$^
 
+run_reader: $(EXE_PATH)reader
+	./$^
+
 #Compile all the .o files.
 all: $(OBJECTS)
+
+ecec : 
+	echo $(HEADERS) $(INTERFACES)
 
 # Compline everything, and create an executable file
 # Note there is no need to specify where is the main function.
@@ -72,6 +80,12 @@ $(EXE_PATH)sender: $(OBJ_PATH)sender.o $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ -o  $@
 
 $(OBJ_PATH)sender.o: sender.cpp $(HEADERS) $(INTERFACES)
+	$(CXX) $(CXXFLAGS) --compile $< -o $@
+
+$(EXE_PATH)reader: $(OBJ_PATH)reader.o $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $^ -o  $@
+
+$(OBJ_PATH)reader.o: reader.cpp $(HEADERS) $(INTERFACES)
 	$(CXX) $(CXXFLAGS) --compile $< -o $@
 
 tidy:
