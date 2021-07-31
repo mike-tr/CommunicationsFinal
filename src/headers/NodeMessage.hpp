@@ -1,5 +1,19 @@
 #pragma once
 #include <cstring>
+#include <iostream>
+#include <sstream>
+
+namespace net_fid
+{
+    const int ack = 1;
+    const int nack = 2;
+    const int connect = 4;
+    const int discover = 8;
+    const int route = 16;
+    const int send = 32;
+
+    std::string fid_tostring(int fid);
+}
 
 struct NodeMessage
 {
@@ -11,21 +25,42 @@ struct NodeMessage
     int function_id = 0;
     char payload[492] = {0};
 
-    void setPayload(std::string str)
+    void setPayload(std::string str, uint offset)
     {
-        std::strcpy(payload, str.c_str());
+        std::strcpy(&payload[offset], str.c_str());
     }
 
-    std::string to_string()
+    std::string to_string() const
     {
         std::string proto;
         proto += ("Message ID: " + std::to_string(this->msg_id) + ", ");
         proto += ("Source ID: " + std::to_string(this->source_id) + "\n");
         proto += ("Destination ID: " + std::to_string(this->destination_id) + ", ");
         proto += ("Trailing Message: " + std::to_string(this->trailing_msg) + "\n");
-        proto += ("Function ID: " + std::to_string(this->function_id) + ", ");
-        std::string str(this->payload);
-        proto += ("Payload: " + str);
+        proto += ("Function : " + net_fid::fid_tostring(this->function_id) + "\n");
+        if (this->function_id == net_fid::ack or this->function_id == net_fid::nack)
+        {
+            int mid = *this->payload;
+            proto += ("Payload: " + std::to_string(mid));
+        }
+        else
+        {
+            int len = *this->payload;
+            std::string str(this->payload + 4);
+            proto += "Len : " + std::to_string(len) + ", Payload : " + str;
+        }
         return proto;
+    }
+
+    friend std::ostream &operator<<(std::ostream &out, const NodeMessage &msg)
+    {
+        out << msg.to_string();
+        return out;
+    }
+
+    friend std::stringstream &operator<<(std::stringstream &out, const NodeMessage &msg)
+    {
+        out << msg.to_string();
+        return out;
     }
 };

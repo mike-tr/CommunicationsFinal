@@ -15,7 +15,7 @@ Node::Node(Utilities::Address &address, int max_connections, bool listen_to_inpu
     this->max_connections = max_connections;
     if ((this->server = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
-        perror("socket failed");
+        cerr << "socket failed" << endl;
         exit(EXIT_FAILURE);
     }
 
@@ -31,24 +31,36 @@ Node::Node(Utilities::Address &address, int max_connections, bool listen_to_inpu
     int p = inet_pton(AF_INET, &address.ip[0], &serv_addr.sin_addr);
     if (p <= 0)
     {
-        printf("inet_pton has failed...\n");
+        cerr << "inet_pton has failed...\n";
         exit(1);
     }
 
     if (bind(this->server, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
-        perror(" Failed to bind server to speciefied ip and port ");
+        cerr << " Failed to bind server to speciefied ip and port " << endl;
         exit(1);
     }
 }
 
+void Node::close_server()
+{
+    running = false;
+    listner.stop();
+    sleep(0.1);
+}
+
 Node::~Node()
 {
+    listner.stop();
     running = false;
     close(this->server);
     //w84connections.join();
 
-    cout << "quit" << endl;
+    for (auto sock : sockToAddr)
+    {
+        close(sock.first);
+    }
+    cout << "~Node" << endl;
 }
 
 void Node::start_server()
@@ -56,46 +68,40 @@ void Node::start_server()
     cout << "Starting Node..." << endl;
     //add_fd_to_monitoring(this->server);
     this->running = true;
-    this->w84connections = thread{&Node::connections_thread, this};
-    this->handle_input();
-}
+    //this->w84connections = thread{&Node::connections_thread, this};
 
-void Node::connections_thread()
-{
     cout << "waiting for new connections..." << endl;
     if (listen(this->server, this->max_connections) != 0)
     {
-        perror(" There's an ERROR in listening ");
+        cerr << " There's an ERROR in listening " << endl;
         exit(1);
     }
+    listner.add_descriptor(this->server);
+    //this->handle_connection();
+    this->handle_input();
+}
 
-    sockaddr_in incomming_connection;
-    socklen_t addr_size = sizeof(incomming_connection);
-
-    while (this->running)
+void Node::handle_connection()
+{
+    memset(&incomming_connection, 0, sizeof(incomming_connection));
+    int client = accept(this->server, (struct sockaddr *)&incomming_connection, &addr_size);
+    if (client == -1)
     {
-        memset(&incomming_connection, 0, sizeof(incomming_connection));
-        int client = accept(this->server, (struct sockaddr *)&incomming_connection, &addr_size);
-        if (client == -1)
-        {
-            printf("failed to accept client\n");
-            close(client);
-            exit(1);
-        }
-
-        char ip[16] = {0};
-        inet_ntop(AF_INET, &incomming_connection.sin_addr.s_addr, ip, 15);
-        uint16_t port = ntohs(incomming_connection.sin_port);
-        printf("connected succsesfully to %s:%d \n", ip, port);
-
-        Utilities::Address add{ip, port};
-        this->connections.insert({client, add});
-        // this->connections[client] = add;
-
-        // We send a message to the socket inorder to update and get new data.
-        listner.add_descriptor(client);
-        listner.interupt();
+        cerr << "failed to accept client\n";
+        close(client);
     }
+
+    char ip[16] = {0};
+    inet_ntop(AF_INET, &incomming_connection.sin_addr.s_addr, ip, 15);
+    uint16_t port = ntohs(incomming_connection.sin_port);
+    printf("connected succsesfully to %s:%d \n", ip, port);
+
+    Utilities::Address add{ip, port};
+    this->sockToAddr.insert({client, add});
+    // this->connections[client] = add;
+
+    // We send a message to the socket inorder to update and get new data.
+    listner.add_descriptor(client);
 }
 
 void Node::handle_input()
@@ -106,28 +112,73 @@ void Node::handle_input()
     usert = thread{&Node::userThread, this};
     while (this->running)
     {
-        printf("\nwaiting for input...\n");
-
-        int socket = listner.wait_for_input();
-        printf("fd: %d is ready. reading...\n", socket);
+        slog << "\nwaiting for input...\n";
+        int sock = listner.wait_for_input();
+        slog << "fd: " << sock << " is ready. reading..." << endl;
         // this simply reads the bytes send from the right socket, and droppes the message into bugg
         // Notice : that you want to remove any garbage from buff.
         // so i ADD here buff = 0
         memset(buff, 0, buff_size);
         //fgets(buff, buff_size, stdin);
-        if (socket == -1)
+        if (sock == -1)
         {
-            cout << "Error in input... " << strerror(errno) << endl;
+            cerr << "Error in input... " << strerror(errno) << endl;
+            //cout << "Error in input... " << strerror(errno) << endl;
         }
-        else if (socket == 0)
+        else if (sock == -2)
         {
-            // READ FROM USER
-            this->handleUserInput();
+            usert.join();
+            cout << "got stop message" << endl;
+            return;
+        }
+        else if (sock == this->server)
+        {
+            // NEW CONNECTION
+            this->handle_connection();
         }
         else
         {
             // TCP message, recived
-            this->handleNodeInput(socket);
+            this->handleNodeInput(sock);
         }
     }
+}
+
+int Node::getMsgId()
+{
+    // give a "unique" msg id, by forcibly adding nodeid at the start,
+    // we force each node have different msg id sent by them.
+    string m = to_string(this->node_id) + to_string(this->mid++);
+    return std::atoi(&m[0]);
+}
+
+void Node::remove_sock(int sock)
+{
+    // delete a given scoket
+    this->listner.remove_descriptor(sock);
+    this->sockToAddr.erase(sock);
+
+    int v = this->socketToId[sock];
+    if (v != 0)
+    {
+        this->socketToId.erase(sock);
+        this->idToSocket.erase(v);
+    }
+    this->listner.interupt();
+
+    while (true)
+    {
+        memset(this->buff, 0, this->buff_size);
+        this->msg_size = read(sock, buff, buff_size);
+
+        if (this->msg_size == 0)
+        {
+            cout << "read out all the shiet" << endl;
+            break;
+        }
+    }
+
+    // int t = 1;
+    // setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &t, sizeof(int));
+    close(sock);
 }

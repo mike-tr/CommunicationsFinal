@@ -1,8 +1,13 @@
 127.0.0.1
-5050
+5051
+sleep
 setid,2
 connect,127.0.0.1:5000
-123123
-basedas
-sdasdas
-fdfdasf
+sleep
+send,1,40,i am an automatic, test hehe...
+sleep
+send,1,40,automatic message number 2
+sleep
+send,1,40,test number 3
+sleep
+peers

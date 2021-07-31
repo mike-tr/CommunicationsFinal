@@ -1,4 +1,5 @@
 #include "headers/Utilities.hpp"
+#include "headers/NodeMessage.hpp"
 #include <algorithm>
 using namespace std;
 
@@ -20,5 +21,29 @@ namespace Utilities
             result.push_back(str);
         }
         return result;
+    }
+}
+
+namespace net_fid
+{
+    std::string fid_tostring(int fid)
+    {
+        switch (fid)
+        {
+        case ack:
+            return "Ack";
+        case nack:
+            return "Nack";
+        case connect:
+            return "Connected";
+        case discover:
+            return "Discover";
+        case route:
+            return "Route";
+        case send:
+            return "Send";
+        default:
+            return std::to_string(fid);
+        }
     }
 }

@@ -26,6 +26,7 @@ fd_listener::fd_listener(bool enable_user_input) : max_discriptor(0)
         this->add_descriptor(0);
     }
     this->add_descriptor(this->interrupt_sock[0]);
+    this->add_descriptor(this->interrupt_sock[1]);
 }
 
 void fd_listener::add_descriptor(const uint fd)
@@ -36,6 +37,7 @@ void fd_listener::add_descriptor(const uint fd)
     {
         this->max_discriptor = fd;
     }
+    this->interupt();
 }
 
 void fd_listener::remove_descriptor(const uint fd)
@@ -71,6 +73,11 @@ int fd_listener::wait_for_input()
                     read(fd, buff, buff_size);
                     return wait_for_input();
                 }
+                else if (fd == this->interrupt_sock[1])
+                {
+                    cout << "Exiting..." << endl;
+                    return -2;
+                }
                 return fd;
             }
         }
@@ -81,4 +88,9 @@ int fd_listener::wait_for_input()
 void fd_listener::interupt()
 {
     send(this->interrupt_sock[1], &interupt_msg[0], interupt_msg.length(), 0);
+}
+
+void fd_listener::stop()
+{
+    send(this->interrupt_sock[0], &interupt_msg[0], interupt_msg.length(), 0);
 }

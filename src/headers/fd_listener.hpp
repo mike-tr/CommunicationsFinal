@@ -21,6 +21,7 @@ public:
     void remove_descriptor(const uint fd);
     // Intrupt the wait_for_input function, i.e call this after you have added a new descriptor.
     void interupt();
+    void stop();
     // W8 for input on any file descriptor, when there is input in a file returns the file descriptor.
     int wait_for_input();
 };
