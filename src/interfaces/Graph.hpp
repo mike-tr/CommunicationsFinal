@@ -1,7 +1,6 @@
 #pragma once
 
-class Graph
-{
+class Graph {
 public:
     virtual void AddNode(int nodeID) = 0;
     virtual void AddEdge(int node1, int node2) = 0;

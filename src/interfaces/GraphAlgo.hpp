@@ -2,8 +2,7 @@
 #include "Graph.hpp"
 #include <vector>
 
-class GraphAlgo
-{
+class GraphAlgo {
 public:
     // set new graph
     virtual void init(Graph graoh) = 0;

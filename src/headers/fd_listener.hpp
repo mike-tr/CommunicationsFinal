@@ -5,8 +5,7 @@
 
 typedef unsigned int uint;
 
-class fd_listener
-{
+class fd_listener {
     fd_set rfds, rfds_copy;
     std::set<uint> descriptors;
     uint max_discriptor;

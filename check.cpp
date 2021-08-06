@@ -1,16 +1,15 @@
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <iostream>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <sys/types.h>
-#include <time.h>
 #include <thread>
-#include <iostream>
-#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "src/headers/select.hpp"
 // #include "src/select.cpp"
@@ -37,43 +36,36 @@
 //     }
 // }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int sockfd = 0;
     struct sockaddr_in serv_addr, new_addr;
     //int ret;
     // int opt = 1;
     char buff[1025];
     //time_t ticks;
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-    {
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(SERVER_PORT);
     int p = inet_pton(AF_INET, (const char *)SERVER_IP_ADDRESS, &serv_addr.sin_addr);
-    if (p <= 0)
-    {
+    if (p <= 0) {
         printf("inet_pton has failed...\n");
         close(sockfd);
         exit(1);
     }
 
-    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-    {
+    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror(" Bind failed ");
         exit(1);
     }
     printf("adding fd1(%d) to monitoring\n", sockfd);
     add_fd_to_monitoring(sockfd);
 
-    if (listen(sockfd, 10) == 0)
-    {
+    if (listen(sockfd, 10) == 0) {
         printf(" Listening right now... \n");
-    }
-    else
-    {
+    } else {
         perror(" There's an ERROR in listening ");
         exit(1);
     }
@@ -83,18 +75,15 @@ int main(int argc, char *argv[])
     printf("after thread start...\n");
 
     bool listen = true;
-    while (listen)
-    {
+    while (listen) {
         printf("waiting for input...\n");
         int ret = wait_for_input();
         printf("fd: %d is ready. reading...\n", ret);
 
-        if (ret == sockfd)
-        {
+        if (ret == sockfd) {
             memset(&addr_size, 0, sizeof(addr_size));
             int client = accept(sockfd, (struct sockaddr *)&new_addr, &addr_size);
-            if (client == -1)
-            {
+            if (client == -1) {
                 printf("failed to accept client\n");
                 close(client);
                 exit(1);
@@ -104,9 +93,7 @@ int main(int argc, char *argv[])
             uint16_t port = ntohs(new_addr.sin_port);
             printf("connected succsesfully to %s:%d \n", ip, port);
             add_fd_to_monitoring(client);
-        }
-        else
-        {
+        } else {
             memset(buff, 0, 1025);
             read(ret, buff, 1025);
             printf("%s", buff);

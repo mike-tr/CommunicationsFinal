@@ -6,8 +6,7 @@
 
 using namespace std;
 
-int main()
-{
+int main() {
     auto pr = NodeMessage{};
     string baka = "kekekeke lololo";
     char *c = &baka[0];

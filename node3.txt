@@ -1,0 +1,10 @@
+127.0.0.1
+5060
+setid,3
+connect,127.0.0.1:5050
+sleep
+send,2,40,test msg 333
+sleep
+send,2,40,test msg 2
+sleep
+peers

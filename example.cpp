@@ -1,18 +1,17 @@
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "src/headers/select.hpp"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int listenfd = 0, listenfd2 = 0;
     struct sockaddr_in serv_addr;
     int ret;
@@ -54,8 +53,7 @@ int main(int argc, char *argv[])
     bool listen = true;
     // run this fucntion to see if that working :
     // echo "This is my data" > /dev/udp/127.0.0.1/5001
-    while (listen)
-    {
+    while (listen) {
         // this part is w8ing for any input from user or a UDP message to port2 or port1.
         // i.e in this case if you send udp message to 127.0.0.1:5000 or 127.0.0.1:5001 this will show the message
         // and it will print the "socket" that has recieved that message.

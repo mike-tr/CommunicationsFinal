@@ -1,0 +1,10 @@
+127.0.0.1
+5100
+setid,4
+connect,127.0.0.1:5000
+sleep
+send,1,40,tuturu
+sleep
+send,1,40,mayoshi is here
+sleep
+peers

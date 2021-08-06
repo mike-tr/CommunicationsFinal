@@ -1,11 +1,11 @@
 #include "iostream"
 // #include "hpp/select.hpp"
+#include <iostream>
 #include <string>
 #include <unistd.h>
-#include <iostream>
 
-#include "src/headers/NodeMessage.hpp"
 #include "src/headers/Node.hpp"
+#include "src/headers/NodeMessage.hpp"
 #include "src/headers/Utilities.hpp"
 // #include "src/NodeInherited.cpp"
 //#include "src/headers/ClientNode.hpp"
@@ -13,8 +13,7 @@
 using namespace std;
 using namespace Utilities;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     // cout << argc << endl;
     // for (int i = 0; i < argc; i++)
     // {
