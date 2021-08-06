@@ -36,9 +36,10 @@ void nroute::update(NodeMessage &msg) {
         for (uint i = 0; i < size; i++) {
             npath.push_back(arr[i + 2]);
         }
+
         if (this->status == discover_status::empty or this->path.size() > npath.size()) {
             this->path = npath;
-        } else {
+        } else if (this->path.size() == npath.size()) {
             bool swap = false;
             for (uint i = 0; i < size; i++) {
                 if (npath[i] < this->path[i]) {

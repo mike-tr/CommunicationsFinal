@@ -1,7 +1,7 @@
 127.0.0.1
-5100
+5004
 setid,4
-connect,127.0.0.1:5000
+connect,127.0.0.1:5001
 sleep
 send,1,40,tuturu
 sleep

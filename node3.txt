@@ -1,7 +1,7 @@
 127.0.0.1
-5060
+5003
 setid,3
-connect,127.0.0.1:5050
+connect,127.0.0.1:5002
 sleep
 send,2,40,test msg 333
 sleep

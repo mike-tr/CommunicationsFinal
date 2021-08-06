@@ -1,8 +1,8 @@
 127.0.0.1
-5050
+5002
 sleep
 setid,2
-connect,127.0.0.1:5000
+connect,127.0.0.1:5001
 sleep
 send,1,40,i am an automatic, test hehe...
 sleep

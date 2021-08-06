@@ -1,0 +1,12 @@
+127.0.0.1
+5005
+setid,5
+connect,127.0.0.1:5003
+sleep
+connect,127.0.0.1:5004
+sleep
+send,3,40,tuturu
+sleep
+send,4,40,tuturu
+sleep
+peers
