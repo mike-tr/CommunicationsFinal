@@ -41,53 +41,10 @@ int Node::connect_to(Utilities::Address &address) {
     return other_node;
 }
 
-void Node::send_message(vector<string> userinput) {
-    if (userinput.size() < 4) {
-        ulog << "Nack : invalid arguments" << endl;
-        plog << "Nack" << endl;
-    }
-
-    if (this->socketToId.size() == 0) {
-        ulog << "Nack : No connections!" << endl;
-        plog << "Nack" << endl;
-        return;
-    }
-
-    int other_id = std::atoi(&userinput[1][0]);
-    int other_sock = idToSocket[other_id];
-    if (other_sock == 0) {
-        idToSocket.erase(other_id);
-        ulog << "Nack, not supported messages between unconnected nodes..." << endl;
-        plog << "Nack";
-        return;
-    }
-
-    int len = std::atoi(&userinput[2][0]);
-    string message = userinput[3];
-    for (uint i = 4; i < userinput.size(); i++) {
-        message += "," + userinput[i];
-    }
-
-    NodeMessage nm;
-    nm.source_id = this->node_id;
-    nm.destination_id = other_id;
-    nm.function_id = net_fid::send;
-    nm.msg_id = this->createUniqueMsgID();
-    *(int *)nm.payload = len;
-    nm.setPayload(message, 4);
-
-    // THIS SHOULD BE THE COMMENTED LINE FROM BELOW!
-    //int other_sock = other_id;
-    this->send_netm(other_sock, nm);
-}
-
-void Node::send_netm(int sock, NodeMessage &message) {
+void Node::send_netm(int sock, const NodeMessage &message) {
     // if not ack or nack
     if (message.function_id > 2 and message.function_id != net_fid::route) {
-        message_id_saver ms;
-        ms.save_data = message.function_id;
-        ms.dest_id = message.destination_id;
-        this->msgIdToFuncID[message.msg_id] = ms;
+        this->add_funcID_by_MessageID(message);
     }
     send(sock, &message, sizeof(message), 0);
 }
@@ -133,11 +90,11 @@ void Node::connect_tcp(std::string ipport) {
     this->send_netm(fd, nm);
 }
 
-void Node::send_ack(int sock, NodeMessage &incoming_message) {
+void Node::send_ack(int sock, const NodeMessage &incoming_message) {
     NodeMessage nm;
     nm.msg_id = this->createUniqueMsgID();
     nm.source_id = this->node_id;
-    nm.destination_id = incoming_message.source_id;
+    nm.destination_id = this->socketToNodeData[sock].node_id;
     nm.function_id = net_fid::ack;
     *(int *)nm.payload = incoming_message.msg_id;
 
@@ -146,16 +103,23 @@ void Node::send_ack(int sock, NodeMessage &incoming_message) {
     //((*int)nm.payload) = incoming_message.msg_id;
 }
 
-void Node::send_nack(int sock, NodeMessage &incoming_message) {
+void Node::send_nack(int sock, const NodeMessage &incoming_message) {
     NodeMessage nm;
     nm.msg_id = this->createUniqueMsgID();
     nm.source_id = this->node_id;
-    nm.destination_id = incoming_message.source_id;
+    nm.destination_id = this->socketToNodeData[sock].node_id;
     nm.function_id = net_fid::nack;
     *(int *)nm.payload = incoming_message.msg_id;
     //*nm.payload = incoming_message.msg_id;
     //((*int)nm.payload) = incoming_message.msg_id;
     this->send_netm(sock, nm);
     slog << "sent nack message..." << endl;
-    slog << nm << endl;
+    //slog << nm << endl;
+}
+
+message_id_saver &Node::add_funcID_by_MessageID(const NodeMessage &message) {
+    message_id_saver &ms = this->msgIdToFuncID[message.msg_id];
+    ms.save_data = message.function_id;
+    ms.dest_id = message.destination_id;
+    return ms;
 }

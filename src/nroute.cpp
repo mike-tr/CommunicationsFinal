@@ -7,9 +7,10 @@ nroute::nroute() : rtime(time(nullptr)), status(discover_status::empty) {
     std::time(&rtime);
     this->responses = 0;
     this->ignore_id = 0;
+    this->searching = false;
 }
 
-void nroute::update(NodeMessage &msg) {
+void nroute::update(const NodeMessage &msg) {
     if (msg.function_id == net_fid::discover) {
         remove_ignore_id();
     }
@@ -76,9 +77,10 @@ void nroute::dump() {
     this->path.clear();
     this->ignore_id = 0;
     this->responses = 0;
+    this->searching = false;
 }
 
-std::string nroute::to_string() {
+std::string nroute::to_string() const {
     std::string p;
     for (uint i = 0; i < this->path.size(); i++) {
         if (i > 0) {

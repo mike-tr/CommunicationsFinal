@@ -35,6 +35,8 @@ std::string fid_tostring(int fid) {
         return "Route";
     case send:
         return "Send";
+    case relay:
+        return "Relay";
     default:
         return std::to_string(fid);
     }

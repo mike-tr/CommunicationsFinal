@@ -31,12 +31,13 @@ struct nroute {
     int ignore_id;
     discover_status status;
     uint responses;
+    bool searching;
 
     nroute();
-    void update(NodeMessage &msg);
+    void update(const NodeMessage &msg);
     bool check_valid(int timeout);
     void dump();
-    std::string to_string();
+    std::string to_string() const;
     void pack_msg(NodeMessage &msg);
     void remove_ignore_id();
 };

@@ -9,19 +9,19 @@ using namespace Utilities;
 
 const double stimeout = 60;
 
-void Node::handle_rout_update(int target_id, NodeMessage &ms) {
-    auto &rout = this->routes[target_id];
+void Node::handle_route_update(int target_id, const NodeMessage &ms) {
+    auto &route = this->routes[target_id];
 
-    rout.update(ms);
+    route.update(ms);
     slog << "handeling discover response..." << endl;
 
-    if (rout.responses == this->socketToId.size()) {
+    if (route.responses == this->socketToNodeData.size()) {
         // this means that all the neibouring nodes have responded to the discover.
         // hence we have the shortest path ( if any exists ).
         slog << "reporting back to all the waiting nodes..." << endl;
-        if (rout.status == discover_status::found) {
+        if (route.status == discover_status::found) {
             slog << "route has been found!!" << endl;
-            slog << "route is : " << rout.to_string() << endl;
+            slog << "route is : " << route.to_string() << endl;
 
             auto r2 = this->routes[target_id];
             slog << r2.responses << " ," << target_id << endl;
@@ -31,7 +31,7 @@ void Node::handle_rout_update(int target_id, NodeMessage &ms) {
             route_message.source_id = this->node_id;
             route_message.function_id = net_fid::route;
             route_message.trailing_msg = 0;
-            auto rn = rout;
+            auto rn = route;
             rn.path.push_front(this->node_id);
             rn.pack_msg(route_message);
 
@@ -60,34 +60,36 @@ void Node::handle_rout_update(int target_id, NodeMessage &ms) {
                 }
             }
         }
-        this->on_wait = false;
+        this->on_route_wait = false;
+        route.searching = false;
     }
 }
 
 void Node::send_discover(int target_id) {
-    auto &rout = this->routes[target_id];
-    slog << "did : " << target_id << ", " << rout.responses << endl;
-    for (auto rrr : rout.responded) {
-        slog << "got respond from " << rrr.first << endl;
-        slog << rout.responded[rrr.first] << endl;
-    }
+    // send discover messages to all connected nodes.
+    // this method assumes that you KNOW that you want to send discover message
+    // i.e you didnt sent discover message recently
+    // its not looping etc...
+    auto &route = this->routes[target_id];
+    route.searching = true;
+
     NodeMessage dmsg;
     dmsg.source_id = this->node_id;
     dmsg.function_id = net_fid::discover;
     (*(int *)dmsg.payload) = target_id;
-    for (auto ntd : this->socketToId) {
-        slog << "checking sock " << ntd.second << endl;
-        if (rout.responded[ntd.second]) {
+    for (auto ntd : this->socketToNodeData) {
+        slog << "checking sock " << ntd.second.node_id << endl;
+        if (route.responded[ntd.second.node_id]) {
             slog << "skip sock..." << endl;
             continue;
         }
         slog << "sending discover to that socket..." << endl;
-        dmsg.destination_id = ntd.second;
+        dmsg.destination_id = ntd.second.node_id;
         dmsg.msg_id = this->createUniqueMsgID();
 
         message_id_saver msv;
         msv.save_data = target_id;
-        msv.dest_id = ntd.second;
+        msv.dest_id = ntd.second.node_id;
         this->msgIdToDiscoverID[dmsg.msg_id] = msv;
         this->send_netm(ntd.first, dmsg);
     }
@@ -95,64 +97,63 @@ void Node::send_discover(int target_id) {
 
 void Node::route(std::string sid) {
     int target_id = std::atoi(&sid[0]);
-    uint num_connections = this->socketToId.size();
+    uint num_connections = this->socketToNodeData.size();
     if (num_connections == 0) {
         ulog << "no such route, there is no connections!" << endl;
         plog << "Nack" << endl;
         return;
     }
 
-    for (auto ntd : this->socketToId) {
-        if (ntd.second == target_id) {
+    for (auto ntd : this->socketToNodeData) {
+        if (ntd.second.node_id == target_id) {
             ulog << "Directly connected to : " << target_id << endl;
             plog << "Ack";
             return;
         }
     }
 
-    auto &rout = this->routes[target_id];
-    rout.remove_ignore_id();
-    if (rout.check_valid(stimeout) && rout.responses == num_connections) {
-        if (rout.status == discover_status::empty) {
-            ulog << "no such route..." << endl;
-            plog << "Nack" << endl;
-            return;
-        } else {
-            ulog << "route : " << rout.to_string() << endl;
-            plog << rout.to_string() << endl;
-            return;
-        }
-    }
+    this->find_route_user(target_id);
 
-    this->on_wait = true;
-    this->on_route = true;
-    this->send_discover(target_id);
-
-    this->block_server = false;
-    while (this->on_wait) {
-        sleep(0.1);
-        //cout << "waiting..." << endl;
-    }
-    this->block_server = true;
-    const auto rr = this->routes[target_id];
-    ulog << rr.responses << ", " << target_id << endl;
-    if (rr.status == discover_status::found) {
+    const auto route = this->routes[target_id];
+    ulog << route.responses << ", " << target_id << endl;
+    if (route.status == discover_status::found) {
         ulog << "Ack, found route to : " << target_id << endl;
-        ulog << rout.to_string() << endl;
+        ulog << route.to_string() << endl;
         plog << "Ack" << endl
-             << rout.to_string() << endl;
+             << route.to_string() << endl;
     } else {
         ulog << "Nack, no route route to : " << target_id << endl;
         plog << "Nack" << endl;
     }
 }
 
+void Node::find_route_user(int target_id) {
+    auto &rout = this->routes[target_id];
+
+    uint num_connections = this->socketToNodeData.size();
+    rout.remove_ignore_id();
+    if (rout.check_valid(stimeout) && rout.responses == num_connections) {
+        return;
+    }
+
+    this->on_route_wait = true;
+    //Ask other nodes for
+    this->send_discover(target_id);
+
+    this->block_server = false;
+    while (this->on_route_wait) {
+        sleep(0.1);
+        //cout << "waiting..." << endl;
+    }
+    this->block_server = true;
+}
+
 void Node::handle_discover(NodeMessage &incoming_message) {
     int target_id = *(int *)incoming_message.payload;
     slog << "\n\nhandeling incoming discover message" << endl;
 
-    for (auto ntd : this->socketToId) {
-        if (ntd.second == target_id) {
+    for (auto ntd : this->socketToNodeData) {
+        if (ntd.second.node_id == target_id) {
             slog << "connected to " << target_id << ", sending route..." << endl;
             nroute pres;
             pres.path.push_front(target_id);
@@ -174,10 +175,23 @@ void Node::handle_discover(NodeMessage &incoming_message) {
     }
 
     auto &route = this->routes[target_id];
+    if (route.searching) {
+        // if iam searching for the same node, then well i dont want to search again
+        // i will notify that i dont know a path.
+        // note that might cause an issue so if the other node is doing his own search,
+        // he might not find it
+        // but the chance is slim
+        // and otherwise it will cause dead lock.
+        //slog << (int)route.status << ", " << route.responses << endl;
+        int sock = idToSocket[incoming_message.source_id];
+        this->send_nack(sock, incoming_message);
+        return;
+    }
+
     slog << (int)route.status << ", " << route.responses << endl;
     if (route.check_valid(stimeout)) {
         route.update(incoming_message);
-        if (this->socketToId.size() == route.responses) {
+        if (this->socketToNodeData.size() == route.responses) {
             int sock = idToSocket[incoming_message.source_id];
             if (route.status == discover_status::empty) {
                 slog << "no path sending nack back" << endl;

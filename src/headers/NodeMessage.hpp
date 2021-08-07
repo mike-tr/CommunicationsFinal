@@ -10,6 +10,7 @@ const int connect = 4;
 const int discover = 8;
 const int route = 16;
 const int send = 32;
+const int relay = 64;
 
 std::string fid_tostring(int fid);
 } // namespace net_fid
@@ -17,6 +18,17 @@ std::string fid_tostring(int fid);
 struct message_id_saver {
     int save_data;
     int dest_id;
+    message_id_saver *prev = nullptr;
+
+    message_id_saver() : save_data{0}, dest_id{0}, prev{nullptr} {
+    }
+
+    ~message_id_saver() {
+        if (prev != nullptr) {
+            delete prev;
+            prev = nullptr;
+        }
+    }
 };
 
 struct NodeMessage {

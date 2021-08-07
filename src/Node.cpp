@@ -82,7 +82,8 @@ void Node::handle_connection() {
     char ip[16] = {0};
     inet_ntop(AF_INET, &incomming_connection.sin_addr.s_addr, ip, 15);
     uint16_t port = ntohs(incomming_connection.sin_port);
-    printf("connected succsesfully to %s:%d \n", ip, port);
+    //ulog << "connected succsesfully to " << ip << ":" << port << endl;
+    //printf("connected succsesfully to %s:%d \n", ip, port);
 
     Utilities::Address add{ip, port};
     this->sockToAddr.insert({client, add});
@@ -135,9 +136,9 @@ void Node::remove_sock(int sock) {
     this->listner.remove_descriptor(sock);
     this->sockToAddr.erase(sock);
 
-    int disconnected_id = this->socketToId[sock];
+    int disconnected_id = this->socketToNodeData[sock].node_id;
     if (disconnected_id != 0) {
-        this->socketToId.erase(sock);
+        this->socketToNodeData.erase(sock);
         this->idToSocket.erase(disconnected_id);
     }
     this->listner.interupt();
