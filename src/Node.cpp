@@ -96,17 +96,13 @@ void Node::handle_connection() {
 void Node::server_loop() {
     cout << "listening to all..." << endl;
     // char buff[buff_size];
-    char buff[buff_size];
     usert = thread{&Node::user_loop, this};
     while (this->running) {
         slog << "\nwaiting for input...\n";
         int sock = listner.wait_for_input();
         slog << "fd: " << sock << " is ready. reading..." << endl;
-        // this simply reads the bytes send from the right socket, and droppes the message into bugg
+        // this simply reads the bytes send from the right socket
         // Notice : that you want to remove any garbage from buff.
-        // so i ADD here buff = 0
-        memset(buff, 0, buff_size);
-        //fgets(buff, buff_size, stdin);
         if (sock == -1) {
             cerr << "Error in input... " << strerror(errno) << endl;
             //cout << "Error in input... " << strerror(errno) << endl;

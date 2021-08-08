@@ -1,0 +1,12 @@
+127.0.0.1
+5009
+sof
+setid,9
+connect,127.0.0.1:5008
+sleep
+connect,127.0.0.1:5007
+sleep
+route,1
+sleep
+send,1,40,tuturu
+eof

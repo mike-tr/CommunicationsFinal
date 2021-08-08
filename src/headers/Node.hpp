@@ -67,7 +67,8 @@ private:
     // if node is not running we terminate the threads.
     bool running = false;
     // the main buffer simply so we wont alocate resources everytime.
-    char buff[buff_size];
+    char buff_server[buff_size];
+    char buff_user[buff_size];
     // the size of the last message read,
     uint msg_size = 0;
 
@@ -147,5 +148,5 @@ private:
     // given an ip and port connect to specified ip and port
     virtual void connect_tcp(std::string ipport);
     // here we specify the logic when we get a relay message
-    virtual void handle_relay(int sock, const NodeMessage incoming_message);
+    virtual void handle_relay(int sock, const NodeMessage &incoming_message);
 };

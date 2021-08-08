@@ -6,6 +6,7 @@
 using namespace std;
 
 const bool log_all = false;
+bool repeat = false;
 
 void Node::handleNodeInput(int sock) {
     while (this->block_server) {
@@ -13,8 +14,8 @@ void Node::handleNodeInput(int sock) {
     }
 
     // ON reciving a new message from another node
-    memset(this->buff, 0, this->buff_size);
-    this->msg_size = read(sock, buff, buff_size);
+    memset(this->buff_server, 0, this->buff_size);
+    this->msg_size = read(sock, buff_server, buff_size);
     this->block_user = true;
 
     if (this->msg_size == 0) {
@@ -27,59 +28,59 @@ void Node::handleNodeInput(int sock) {
         // the message suppose to be NodeMessage, if failed catch would catch it.
         try {
             // load the message from buff
-            NodeMessage *ms = (NodeMessage *)buff;
+            NodeMessage ms = *(NodeMessage *)buff_server;
             slog << "message from server size is : " << this->msg_size << endl;
-            slog << ms->to_string() << endl;
+            slog << ms.to_string() << endl;
 
             //  On connect message
-            if (ms->function_id == net_fid::connect) {
+            if (ms.function_id == net_fid::connect) {
                 bool ncon = true;
                 for (auto i : idToSocket) {
-                    if (i.first == ms->source_id) {
+                    if (i.first == ms.source_id) {
                         ncon = false;
                         break;
                     }
                 }
 
-                if (ms->destination_id != 0 or !ncon) {
+                if (ms.destination_id != 0 or !ncon) {
                     // wrong format, return nack.
                     // or infact we are already have such connection.
                     // we cannot be connected twice to the same nodeid
-                    this->send_nack(sock, *ms);
+                    this->send_nack(sock, ms);
                     this->remove_sock(sock);
                 } else {
                     // right format, we add to list.
-                    slog << "connected to : " << ms->source_id << endl;
-                    plog << "\nNew connection : " << ms->source_id << endl;
-                    this->send_ack(sock, *ms);
-                    this->socketToNodeData[sock] = ms->source_id;
-                    this->idToSocket[ms->source_id] = sock;
+                    slog << "connected to : " << ms.source_id << endl;
+                    plog << "\nNew connection : " << ms.source_id << endl;
+                    this->send_ack(sock, ms);
+                    this->socketToNodeData[sock] = ms.source_id;
+                    this->idToSocket[ms.source_id] = sock;
                 }
             }
             // On ack message
-            else if (ms->function_id == net_fid::ack) {
-                this->ack_handle(sock, *ms);
-            } else if (ms->function_id == net_fid::nack) {
-                this->nack_handle(sock, *ms);
-            } else if (ms->function_id == net_fid::send) {
-                if (ms->destination_id == this->node_id) {
-                    this->send_ack(sock, *ms);
+            else if (ms.function_id == net_fid::ack) {
+                this->ack_handle(sock, ms);
+            } else if (ms.function_id == net_fid::nack) {
+                this->nack_handle(sock, ms);
+            } else if (ms.function_id == net_fid::send) {
+                if (ms.destination_id == this->node_id) {
+                    this->send_ack(sock, ms);
                 } else {
-                    this->send_nack(sock, *ms);
+                    this->send_nack(sock, ms);
                 }
-                std::string actuall_message(ms->payload + 4);
-                plog << "\nMessage from : " << ms->source_id << "," << endl;
+                std::string actuall_message(ms.payload + 4);
+                plog << "\nMessage from : " << ms.source_id << "," << endl;
                 plog << actuall_message << endl;
-            } else if (ms->function_id == net_fid::discover) {
-                this->handle_discover(*ms);
-            } else if (ms->function_id == net_fid::route) {
-                int mid = *(int *)ms->payload;
+            } else if (ms.function_id == net_fid::discover) {
+                this->handle_discover(ms);
+            } else if (ms.function_id == net_fid::route) {
+                int mid = *(int *)ms.payload;
                 auto discover_id = msgIdToDiscoverID[mid];
-                this->handle_route_update(discover_id.save_data, *ms);
+                this->handle_route_update(discover_id.save_data, ms);
                 this->msgIdToFuncID.erase(mid);
                 this->msgIdToDiscoverID.erase(mid);
-            } else if (ms->function_id == net_fid::relay) {
-                this->handle_relay(sock, *ms);
+            } else if (ms.function_id == net_fid::relay) {
+                this->handle_relay(sock, ms);
             }
         } catch (exception exp) {
             slog << "Got wrong message format of size : " << this->msg_size << endl;
@@ -91,10 +92,10 @@ void Node::handleNodeInput(int sock) {
 
 bool Node::handleUserInput() {
     // here we read user input
-    memset(this->buff, 0, this->buff_size);
-    if (fgets(buff, buff_size, stdin)) {
+    memset(this->buff_user, 0, this->buff_size);
+    if (fgets(buff_user, buff_size, stdin)) {
         // print user input ( if its from file we want to see given input )
-        ulog << buff << endl;
+        ulog << buff_user << endl;
     } else {
         // shoudn't happen if STDIN is both file and user input.
         cout << "EOF!" << endl;
@@ -116,11 +117,23 @@ bool Node::handleUserInput() {
 
     this->block_server = true;
 
+    if (repeat) {
+        string inp{buff_user};
+        plog << inp;
+    }
     // USER INPUT
-    auto split = Utilities::splitBy(buff, ',');
+    auto split = Utilities::splitBy(buff_user, ',');
 
-    // when no id given we force user to give id first.
-    if (this->node_id == -1) {
+    if (split[0] == "eof") {
+        repeat = false;
+    } else if (split[0] == "sof") {
+        repeat = true;
+    } else if (split[0] == "sleep") {
+        // i.e if we want to write an automatic script,
+        // we would sometimes need to wait.
+        sleep(1);
+    } else if (this->node_id == -1) {
+        // when no id given we force user to give id first.
         if (split[0] != "setid") {
             ulog << "setid first!" << endl;
             ulog << "nack" << endl;
@@ -145,10 +158,6 @@ bool Node::handleUserInput() {
         if (this->formatCheck(split, 1)) {
             this->peers();
         }
-    } else if (split[0] == "sleep") {
-        // i.e if we want to write an automatic script,
-        // we would sometimes need to wait.
-        sleep(0.1);
     } else if (split[0] == "exit") {
         // a command to close server in a "good" maner.
         this->close_server();

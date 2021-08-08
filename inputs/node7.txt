@@ -1,0 +1,7 @@
+127.0.0.1
+5007
+sof
+setid,7
+connect,127.0.0.1:5006
+peers
+eof

@@ -13,18 +13,25 @@ void Node::send_message(vector<string> userinput) {
         plog << "Nack" << endl;
     }
 
+    int len = std::atoi(&userinput[2][0]);
+    string message = userinput[3];
+    for (uint i = 4; i < userinput.size(); i++) {
+        message += "," + userinput[i];
+    }
+
+    int target_id = std::atoi(&userinput[1][0]);
+    if (target_id == this->node_id) {
+        plog << "\nAck, message from my self :" << endl;
+        plog << message << endl;
+        return;
+    }
+
     if (this->socketToNodeData.size() == 0) {
         ulog << "Nack : No connections!" << endl;
         plog << "Nack" << endl;
         return;
     }
 
-    int len = std::atoi(&userinput[2][0]);
-    string message = userinput[3];
-    for (uint i = 4; i < userinput.size(); i++) {
-        message += "," + userinput[i];
-    }
-    int target_id = std::atoi(&userinput[1][0]);
     // BUILD MESSAGE
     NodeMessage nm;
     nm.source_id = this->node_id;
@@ -84,7 +91,7 @@ void Node::send_relay(const NodeMessage &send_message) {
     //cout << "sent all relay messages waiting for response..." << endl;
 }
 
-void Node::handle_relay(int sock, const NodeMessage incoming_message) {
+void Node::handle_relay(int sock, const NodeMessage &incoming_message) {
     // this method gets non reference because it uses buff with might change incoming_message indirectly.
     // opsy.
     uint num_trailing = incoming_message.trailing_msg;
@@ -104,14 +111,14 @@ void Node::handle_relay(int sock, const NodeMessage incoming_message) {
     map<int, NodeMessage> relays;
     while (relays.size() < num_trailing) {
         // cupture all trailing messages then resend them.
-        memset(this->buff, 0, this->buff_size);
-        this->msg_size = read(sock, buff, buff_size);
+        memset(this->buff_server, 0, this->buff_size);
+        this->msg_size = read(sock, buff_server, buff_size);
         if (this->msg_size == 0) {
             slog << "disconnected..." << endl;
             this->remove_sock(sock);
             return;
         }
-        auto msg = *(NodeMessage *)this->buff;
+        auto msg = *(NodeMessage *)this->buff_server;
         relays[num_trailing - msg.trailing_msg - 1] = msg;
         // cout << "got one, id : " << num_trailing - msg.trailing_msg - 1 << endl
         //      << relays[num_trailing - msg.trailing_msg - 1] << endl;

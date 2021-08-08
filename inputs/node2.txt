@@ -1,6 +1,6 @@
 127.0.0.1
 5002
-sleep
+sof
 setid,2
 connect,127.0.0.1:5001
 sleep
@@ -11,3 +11,4 @@ sleep
 send,1,40,test number 3
 sleep
 peers
+eof

@@ -1,5 +1,6 @@
 127.0.0.1
 5004
+sof
 setid,4
 connect,127.0.0.1:5001
 sleep
@@ -8,3 +9,4 @@ sleep
 send,1,40,mayoshi is here
 sleep
 peers
+eof
