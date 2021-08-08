@@ -45,6 +45,7 @@ private:
     std::map<int, message_id_saver> msgIdToFuncID;
     std::map<int, message_id_saver> msgIdToDiscoverID;
     std::map<int, nroute> routes;
+    std::map<int, int> msgIdToRelayTarget;
     std::vector<waiting_route_response> respond_back_list;
 
     sockaddr_in incomming_connection;
@@ -98,6 +99,8 @@ private:
     // assumes that the message destination id, is not a neibour!
     // i.e this method has undefiend behaviour on neibouring nodes.
     void send_relay(const NodeMessage &message);
+    // check if route is valid i.e if next node disconnected.
+    void check_route(int target);
 
     // here we specify the logic when we get a ack message
     // i.e for example on ack for relay we send ack to prev node.

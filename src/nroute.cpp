@@ -62,7 +62,8 @@ void nroute::update(const NodeMessage &msg) {
 bool nroute::check_valid(int timeout) {
     time_t current;
     time(&current);
-    double dif = difftime(this->rtime, current);
+    double dif = difftime(current, this->rtime);
+    //cout << "time " << dif << endl;
     if (dif > timeout) {
         // if is expired we simply "reset" the records.
         this->dump();

@@ -23,6 +23,8 @@ void Node::ack_handle(int sock, const NodeMessage &incoming_message) {
         if (type.prev == nullptr) {
             slog << "Successfully sent relay message..." << endl;
             plog << "Ack" << endl;
+
+            this->msgIdToRelayTarget.erase(mid);
         } else {
             //cout << "sending back ack to prev" << endl;
             slog << "relaying back an ack message..." << endl;
@@ -70,6 +72,10 @@ void Node::nack_handle(int sock, const NodeMessage &incoming_message) {
         if (type.prev == nullptr) {
             slog << "Failed to send relay message..." << endl;
             plog << "Nack" << endl;
+
+            int target = this->msgIdToRelayTarget[mid];
+            this->routes[target].dump();
+            this->msgIdToRelayTarget.erase(mid);
         } else {
             slog << "relaying back an nack message..." << endl;
             NodeMessage relay_back_nack;

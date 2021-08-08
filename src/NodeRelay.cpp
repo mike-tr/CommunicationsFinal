@@ -78,6 +78,7 @@ void Node::send_relay(const NodeMessage &send_message) {
 
         if (i == 0) {
             this->add_funcID_by_MessageID(relay_message);
+            this->msgIdToRelayTarget[relay_message.msg_id] = target_id;
         }
         ulog << "send ::\n"
              << relay_message << endl;
@@ -97,12 +98,6 @@ void Node::handle_relay(int sock, const NodeMessage &incoming_message) {
     uint num_trailing = incoming_message.trailing_msg;
     int next = *(int *)incoming_message.payload;
     int next_sock = this->idToSocket[next];
-    if (next_sock == 0) {
-        slog << "cant relay messages as this node is not connected to target..." << endl;
-        this->idToSocket.erase(next);
-        this->send_nack(sock, incoming_message);
-        return;
-    }
 
     slog << "got trailing message, cupturing the next " << num_trailing << " messages..." << endl;
     slog << "messages are from " << this->socketToNodeData[sock].node_id << endl;
@@ -123,6 +118,13 @@ void Node::handle_relay(int sock, const NodeMessage &incoming_message) {
         // cout << "got one, id : " << num_trailing - msg.trailing_msg - 1 << endl
         //      << relays[num_trailing - msg.trailing_msg - 1] << endl;
         //relays.push_back(*(NodeMessage *)this->buff);
+    }
+
+    if (next_sock == 0) {
+        slog << "cant relay messages as this node is not connected to target..." << endl;
+        this->idToSocket.erase(next);
+        this->send_nack(sock, incoming_message);
+        return;
     }
 
     slog << "cuptured all messages, sending them to the next node." << endl;

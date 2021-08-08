@@ -3,8 +3,8 @@ CXXFLAGS=-g -Wall -pthread
 VALGRIND_FLAGS=-v --leak-check=full --show-leak-kinds=all  --error-exitcode=99
 
 # name of the executable file
-PROG_NAME := pragma.exe
-PROG_NAME2 := pragma2.exe
+PROG_NAME := node.exe
+PROG_NAME2 := node2.exe
 
 # set the path of the executable file
 EXE_PATH := out/
@@ -43,6 +43,9 @@ READER := reader
 run: $(EXE_PATH)$(PROG_NAME)
 	./$^ $(ip) $(port)
 
+build: $(EXE_PATH)$(PROG_NAME)
+	echo build completed
+
 run2: $(EXE_PATH)$(PROG_NAME2)
 	./$^ $(ip) $(port)
 
@@ -51,6 +54,7 @@ run_sender:  $(EXE_PATH)sender
 
 run_reader: $(EXE_PATH)reader
 	./$^
+
 
 #Compile all the .o files.
 all: $(OBJECTS)

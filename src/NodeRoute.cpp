@@ -14,8 +14,8 @@ void Node::handle_route_update(int target_id, const NodeMessage &ms) {
 
     route.update(ms);
     slog << "handeling discover response..." << endl;
-
-    if (route.responses == this->socketToNodeData.size()) {
+    uint num_connections = this->socketToNodeData.size();
+    if (route.responses >= num_connections) {
         // this means that all the neibouring nodes have responded to the discover.
         // hence we have the shortest path ( if any exists ).
         slog << "reporting back to all the waiting nodes..." << endl;
@@ -65,11 +65,22 @@ void Node::handle_route_update(int target_id, const NodeMessage &ms) {
     }
 }
 
+void Node::check_route(int target) {
+    auto &route = this->routes[target];
+    if (route.path.size() > 0) {
+        int next_sock = this->idToSocket[route.path[0]];
+        if (next_sock == 0) {
+            route.dump();
+        }
+    }
+}
+
 void Node::send_discover(int target_id) {
     // send discover messages to all connected nodes.
     // this method assumes that you KNOW that you want to send discover message
     // i.e you didnt sent discover message recently
     // its not looping etc...
+    this->check_route(target_id);
     auto &route = this->routes[target_id];
     route.searching = true;
 
@@ -128,11 +139,14 @@ void Node::route(std::string sid) {
 }
 
 void Node::find_route_user(int target_id) {
-    auto &rout = this->routes[target_id];
+    auto &route = this->routes[target_id];
+    this->check_route(target_id);
 
     uint num_connections = this->socketToNodeData.size();
-    rout.remove_ignore_id();
-    if (rout.check_valid(stimeout) && rout.responses == num_connections) {
+    route.remove_ignore_id();
+    if (route.responses > num_connections) {
+        route.dump();
+    } else if (route.check_valid(stimeout) && route.responses == num_connections) {
         return;
     }
 
@@ -187,11 +201,13 @@ void Node::handle_discover(NodeMessage &incoming_message) {
         this->send_nack(sock, incoming_message);
         return;
     }
+    this->check_route(target_id);
 
+    uint num_connections = this->socketToNodeData.size();
     slog << (int)route.status << ", " << route.responses << endl;
     if (route.check_valid(stimeout)) {
         route.update(incoming_message);
-        if (this->socketToNodeData.size() == route.responses) {
+        if (route.responses >= num_connections) {
             int sock = idToSocket[incoming_message.source_id];
             if (route.status == discover_status::empty) {
                 slog << "no path sending nack back" << endl;
