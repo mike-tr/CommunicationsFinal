@@ -30,11 +30,11 @@ struct NodeData {
 
 class Node : public INodeNet, public INodeUser {
 private:
-    static const int NONE = -1;
+    static const int NULLID = 0;
     static const uint buff_size = sizeof(NodeMessage);
     // SERVER SIDE
     Utilities::Address &my_address;
-    int node_id = NONE;
+    int node_id = NULLID;
     fd_listener listner;
     int server;
     int max_connections;

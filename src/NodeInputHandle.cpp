@@ -34,11 +34,17 @@ void Node::handleNodeInput(int sock) {
 
             //  On connect message
             if (ms.function_id == net_fid::connect) {
+                // if already connected dont do anything
                 bool ncon = true;
-                for (auto i : idToSocket) {
-                    if (i.first == ms.source_id) {
-                        ncon = false;
-                        break;
+                if (ms.source_id == this->node_id) {
+                    // dont let me connect to myself.
+                    ncon = false;
+                } else {
+                    for (auto i : idToSocket) {
+                        if (i.first == ms.source_id) {
+                            ncon = false;
+                            break;
+                        }
                     }
                 }
 
@@ -68,6 +74,7 @@ void Node::handleNodeInput(int sock) {
                 } else {
                     this->send_nack(sock, ms);
                 }
+                // get the actually message and print it.
                 std::string actuall_message(ms.payload + 4);
                 plog << "\nMessage from : " << ms.source_id << "," << endl;
                 plog << actuall_message << endl;
@@ -106,14 +113,17 @@ bool Node::handleUserInput() {
         sleep(0.1);
     }
 
-    while (this->msgIdToFuncID.size() > 0) {
-        cout << "Node is currently on wait..." << endl;
-        for (auto m : this->msgIdToFuncID) {
-            cout << "waiting for response to : " << m.first
-                 << ", " << net_fid::fid_tostring(m.second.save_data) << endl;
-        }
-        sleep(2);
-    }
+    // this code is in the "agashe" but i dont think i actually want to keep it.
+
+    // i.e i dont want to process user input untill we did not "finish" old processes.
+    // while (this->msgIdToFuncID.size() > 0) {
+    //     cout << "Node is currently on wait..." << endl;
+    //     for (auto m : this->msgIdToFuncID) {
+    //         cout << "waiting for response to : " << m.first
+    //              << ", " << net_fid::fid_tostring(m.second.save_data) << endl;
+    //     }
+    //     sleep(2);
+    // }
 
     this->block_server = true;
 
@@ -124,6 +134,8 @@ bool Node::handleUserInput() {
     // USER INPUT
     auto split = Utilities::splitBy(buff_user, ',');
 
+    // eof sof are simply repeat or dont the same message
+    // sleep just sleep.
     if (split[0] == "eof") {
         repeat = false;
     } else if (split[0] == "sof") {
@@ -132,7 +144,7 @@ bool Node::handleUserInput() {
         // i.e if we want to write an automatic script,
         // we would sometimes need to wait.
         sleep(1);
-    } else if (this->node_id == -1) {
+    } else if (this->node_id == NULLID) {
         // when no id given we force user to give id first.
         if (split[0] != "setid") {
             ulog << "setid first!" << endl;
@@ -173,6 +185,7 @@ bool Node::handleUserInput() {
 }
 
 void Node::peers() {
+    // print the list of all connected nodes
     ulog << "Ack" << endl;
     plog << "Ack" << endl;
     plog << "Peers :" << endl;

@@ -56,22 +56,24 @@ Node::~Node() {
 }
 
 void Node::start_server() {
+    // this method start the server
+    // and set the sock for server to handle connections.
+    // i.e marks the socket to handle connections.
     cout << "Starting Node..." << endl;
-    //add_fd_to_monitoring(this->server);
-    this->running = true;
-    //this->w84connections = thread{&Node::connections_thread, this};
 
+    this->running = true;
     cout << "waiting for new connections..." << endl;
     if (listen(this->server, this->max_connections) != 0) {
         cerr << " There's an ERROR in listening " << endl;
         exit(1);
     }
     listner.add_descriptor(this->server);
-    //this->handle_connection();
     this->server_loop();
 }
 
 void Node::handle_connection() {
+    // this bit of code accepts a client and put it into the fd listener.
+    // that way when we get messages from said client we can handle them.
     memset(&incomming_connection, 0, sizeof(incomming_connection));
     int client = accept(this->server, (struct sockaddr *)&incomming_connection, &addr_size);
     if (client == -1) {
@@ -94,8 +96,9 @@ void Node::handle_connection() {
 }
 
 void Node::server_loop() {
+    // this piece of code gets a message from any connected socket,
+    // and maps it to the right function
     cout << "listening to all..." << endl;
-    // char buff[buff_size];
     usert = thread{&Node::user_loop, this};
     while (this->running) {
         slog << "\nwaiting for input...\n";
@@ -132,6 +135,7 @@ void Node::remove_sock(int sock) {
     this->listner.remove_descriptor(sock);
     this->sockToAddr.erase(sock);
 
+    // if we knew the id of the socket we remove the id record.
     int disconnected_id = this->socketToNodeData[sock].node_id;
     if (disconnected_id != 0) {
         this->socketToNodeData.erase(sock);
@@ -139,7 +143,9 @@ void Node::remove_sock(int sock) {
     }
     this->listner.interupt();
 
-    // clean up.
+    // we trace message id's we send in order to handle different responses
+    // acks/nacks/routes, hence if the client was dissconected but was suppose to return a message
+    // we just drop it.
     vector<int> remove_later;
     for (auto m : this->msgIdToFuncID) {
         if (m.second.dest_id == disconnected_id) {
@@ -147,24 +153,11 @@ void Node::remove_sock(int sock) {
         }
     }
 
+    // we acan remove directly so that's how it is done.
     for (auto r : remove_later) {
         this->msgIdToDiscoverID.erase(r);
         this->msgIdToFuncID.erase(r);
     }
 
-    // while (true)
-    // {
-    //     memset(this->buff, 0, this->buff_size);
-    //     this->msg_size = read(sock, buff, buff_size);
-
-    //     if (this->msg_size == 0)
-    //     {
-    //         cout << "read out all the shiet" << endl;
-    //         break;
-    //     }
-    // }
-
-    // int t = 1;
-    // setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &t, sizeof(int));
     close(sock);
 }

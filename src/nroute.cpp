@@ -11,11 +11,13 @@ nroute::nroute() : rtime(time(nullptr)), status(discover_status::empty) {
 }
 
 void nroute::update(const NodeMessage &msg) {
+    // given nack or route message update route.
     if (msg.function_id == net_fid::discover) {
         remove_ignore_id();
     }
 
     if (msg.function_id == net_fid::nack or msg.function_id == net_fid::discover) {
+        // nack ro discover we simply say there is one more response.
         if (this->responded[msg.source_id] == false) {
             this->responded[msg.source_id] = true;
             time(&this->rtime);
@@ -26,6 +28,8 @@ void nroute::update(const NodeMessage &msg) {
             }
         }
     } else if (msg.function_id == net_fid::route) {
+        // found new path, check if its better then already known,
+        // if so replace it.
         if (this->responded[msg.source_id] == false) {
             this->responded[msg.source_id] = true;
             time(&this->rtime);
